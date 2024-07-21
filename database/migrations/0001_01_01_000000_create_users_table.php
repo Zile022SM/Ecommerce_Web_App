@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('zip_code')->nullable();
             $table->string('phone')->nullable();
             $table->string('profile_image')->nullable();
-            $table->boolean('profile_completed')->default(0);
+            $table->boolean('profile_completed')->default(0); 
             $table->rememberToken();
             $table->timestamps();
         });
