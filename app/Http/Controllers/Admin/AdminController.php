@@ -7,6 +7,7 @@ use App\Http\Requests\AuthAdminRequest;
 use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -17,10 +18,10 @@ class AdminController extends Controller
 
         $todaysOrders = Order::whereDay('created_at', Carbon::today())->get();
         $yesterdayOrders = Order::whereDay('created_at', Carbon::today())->get();
-        $monthOrders = Order::whereMonth('created_at', Carbon::month())->get();
-        $yearOrders = Order::whereYear('created_at', Carbon::year())->get();
+        $monthOrders = Order::whereMonth('created_at', Carbon::now()->month)->get();
+        $yearOrders = Order::whereYear('created_at', Carbon::now()->year)->get();
 
-        return view('admin.index', [
+        return view('admin.dashboard', [
             'todaysOrders' => $todaysOrders,
             'yesterdayOrders' => $yesterdayOrders,
             'monthOrders' => $monthOrders,
@@ -29,18 +30,21 @@ class AdminController extends Controller
      }
 
      public function login(){
-        if(!auth()->guard('admin')->check()){
+        if(!Auth::guard('admin')->check()){
             return view('admin.login');
         }
 
-        return redirect('admin/dashboard');
+        return redirect()->route('admin.dashboard');
      }
 
-     public function auth(AuthAdminRequest $request){
+     public function authenticate(AuthAdminRequest $request){
         if($request->validated()){
-            if(auth()->guard('admin')->attempt(['email' => $request->email, 'password' => $request->password])){
+            if(Auth::guard('admin')->attempt([
+                'email' => $request->email, 'password' => $request->password
+                
+                ])){
                 $request->session()->regenerate();
-                return redirect('admin/dashboard');
+                return redirect()->intended(route('admin.dashboard'));
             }else{
                 return redirect()->route('admin.login')->with('error', 'Invalid Credentials');
             }
@@ -48,7 +52,7 @@ class AdminController extends Controller
      }
 
      public function logout(){
-        auth()->guard('admin')->logout();
+        Auth::guard('admin')->logout();
         return redirect()->route('admin.login');
      }
 
